@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>聊天室</title>
+    <link href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/css/bootstrap.css" rel="stylesheet">
+    <style>
+        /* Fix user-agent */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            font-weight: 300;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html, input {
+            font-family:
+                    "HelveticaNeue-Light",
+                    "Helvetica Neue Light",
+                    "Helvetica Neue",
+                    Helvetica,
+                    Arial,
+                    "Lucida Grande",
+                    sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        ul {
+            list-style: none;
+            word-wrap: break-word;
+        }
+
+        /* Pages */
+
+        .pages {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        .page {
+            height: 100%;
+            position: absolute;
+            width: 100%;
+        }
+
+        /* Font */
+
+        .messages {
+            font-size: 150%;
+        }
+
+
+
+        .log {
+            color: gray;
+            font-size: 70%;
+            margin: 5px;
+            text-align: center;
+        }
+
+        /* Messages */
+
+        .chatArea {
+            height: 80%;
+            padding-bottom: 60px;
+        }
+
+        .messages {
+            height: 100%;
+            margin: 0;
+            overflow-y: scroll;
+            padding: 10px 20px 10px 20px;
+        }
+
+
+
+        .username {
+            font-weight: 700;
+            overflow: hidden;
+            padding-right: 15px;
+        }
+
+        .chat{
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<ul class="pages">
+    <li class="chat page">
+        <div class="chatArea">
+            <ul class="messages"></ul>
+        </div>
+        <form class="form-inline" role="form" onsubmit="return false">
+            <div class="form-group col-sm-10">
+                <input type="text" class="form-control col-sm-12 messageInput" placeholder="输入~">
+            </div>
+            <button class="sendBtn btn btn-info">发送</button>
+        </form>
+    </li>
+    <li class="login page">
+        <form class="form-horizontal" role="form" onsubmit="return false;">
+            <div class="form-group" style="margin: 10% 30% 1%">
+                <div class="col-sm-10">
+                    <input type="text" class="form-control username" placeholder="请输入昵称">
+                </div>
+            </div>
+            <div class="form-group" style="margin: 1% 30% 10%">
+                <div >
+                    <button type="submit" class="col-sm-10 btn btn-info loginBtn">加入聊天</button>
+                </div>
+            </div>
+        </form>
+
+    </li>
+</ul>
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+<script>
+    $(function() {
+        var $messages = $('.messages'); // Messages area
+        var username;
+        var connected = false;
+        var socket = io();
+
+
+        //登陆
+        $('.loginBtn').click(function () {
+            username = $('.username').val();
+            if (username.length > 0) {
+                $('.login').fadeOut();
+                $('.chat').show();
+                socket.emit('add user', username);
+            }
+        })
+
+        //发送消息
+        $('.sendBtn').click(function () {
+            if (username) {
+                sendMessage();
+            }
+        })
+
+
+        //当有用户增加时
+        function addParticipantsMessage (data) {
+            var message = '';
+            message += "当前在线人数：" + data.clientCount;
+            log(message);
+        }
+
+
+        // 发送消息
+        function sendMessage () {
+            var message = $('.messageInput').val();
+            if (message && connected) {
+                $('.messageInput').val('');
+                addChatMessage({
+                    username: username,
+                    message: message
+                });
+                socket.emit('new message', message);
+            }
+        }
+
+        //系统消息
+        function log (message, options) {
+            var $el = $('<li>').addClass('log').text(message);
+            $messages.append($el);
+        }
+
+        //操作DOM-增加聊天消息
+        function addChatMessage (data, options) {
+            var $usernameDiv = $('<span class="username"/>')
+                .text(data.username);
+            var $messageBodyDiv = $('<span class="messageBody">')
+                .text(data.message);
+
+            var $messageDiv = $('<li class="message"/>')
+                .data('username', data.username)
+                .append($usernameDiv, $messageBodyDiv);
+                $messages.append($messageDiv);
+        }
+
+
+        //登陆事件
+        socket.on('login', function (data) {
+            connected = true;
+            var message = "欢迎来到聊天室~";
+            log(message, {
+                prepend: true
+            });
+            addParticipantsMessage(data);
+        });
+
+
+        socket.on('new message', function (data) {
+            addChatMessage(data);
+        });
+
+
+        socket.on('user joined', function (data) {
+            log(data.username + ' joined');
+            addParticipantsMessage(data);
+        });
+
+
+        socket.on('user left', function (data) {
+            log(data.username + ' left');
+            addParticipantsMessage(data);
+        });
+
+
+        socket.on('disconnect', function () {
+            log('you have been disconnected');
+        });
+
+        socket.on('reconnect', function () {
+            log('you have been reconnected');
+            if (username) {
+                socket.emit('add user', username);
+            }
+        });
+
+        socket.on('reconnect_error', function () {
+            log('attempt to reconnect has failed');
+        });
+
+    });
+
+</script>
+</body>
+</html>

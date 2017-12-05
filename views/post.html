@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>POST请求</title>
+    <link href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/css/bootstrap.css" rel="stylesheet">
+</head>
+<body>
+<div>
+    <h1 class="col-sm-5">POST请求</h1>
+    <form class="form-horizontal col-sm-5" role="form" onsubmit="return false">
+        <div class="form-group">
+            <label for="username" class="col-sm-2 control-label">姓名</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="username" placeholder="请输入姓名">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="email" class="col-sm-2 control-label">邮箱</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="email" placeholder="请输入邮箱">
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-info col-sm-12 submitBtn">登录</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.js"></script>
+<script>
+    var DATA_API_HOST = 'http://127.0.0.1:8000';
+    $('.submitBtn').click(function () {
+        var username = $('#username').val();
+        var email = $('#email').val();
+        $.ajax({
+            url: DATA_API_HOST + "/login_post",
+            type: "POST",
+            headers: {
+                Accept: "application/json;"
+            },
+            data:{
+                username:username,
+                email:email
+            },
+            dataType: 'json',
+            success: function (data) {
+                console.log(data);
+            }
+        });
+    })
+</script>
+</body>
+</html>
