@@ -6,7 +6,7 @@
     <link href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/css/bootstrap.css" rel="stylesheet">
 </head>
 <body>
-<div>
+<div class="login_wrapper">
     <h1 class="col-sm-5">GET请求</h1>
     <form class="form-horizontal col-sm-5" role="form" onsubmit="return false">
         <div class="form-group">
@@ -28,6 +28,7 @@
         </div>
     </form>
 </div>
+<div class="recv"></div>
 
 <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.js"></script>
 <script>
@@ -44,12 +45,8 @@
             dataType: 'json',
             success: function (data) {
                 console.log(data);
-//                console.log(data);
-//                if(data.status == 'err'){
-//                    $.alert(data.msg,"");
-//                    return;
-//                }
-
+                $('.login_wrapper').css('display','none');
+                $('.recv').text('提交成功：'+ JSON.stringify(data))
             }
         });
     })
